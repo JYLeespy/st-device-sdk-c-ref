@@ -32,7 +32,9 @@
 
 #include "caps_switch.h"
 
+
 // onboarding_config_start is null-terminated string
+// onboarding 및 디바이스 정보를 가리키는 외부 변수 선언
 extern const uint8_t onboarding_config_start[]    asm("_binary_onboarding_config_json_start");
 extern const uint8_t onboarding_config_end[]    asm("_binary_onboarding_config_json_end");
 
@@ -40,6 +42,7 @@ extern const uint8_t onboarding_config_end[]    asm("_binary_onboarding_config_j
 extern const uint8_t device_info_start[]    asm("_binary_device_info_json_start");
 extern const uint8_t device_info_end[]        asm("_binary_device_info_json_end");
 
+// IoT 상태를 추적하는 전역 변수 선언
 static iot_status_t g_iot_status = IOT_STATUS_IDLE;
 static iot_stat_lv_t g_iot_stat_lv;
 
@@ -47,10 +50,13 @@ IOT_CTX* ctx = NULL;
 
 //#define SET_PIN_NUMBER_CONFRIM
 
+// LED 모드와 관련된 변수 선언
 static int noti_led_mode = LED_ANIMATION_MODE_IDLE;
 
+// Switch 데이터와 관련된 변수 선언
 static caps_switch_data_t *cap_switch_data;
 
+// 스위치 상태를 가져오는 함수 정의
 static int get_switch_state(void)
 {
     const char* switch_value = cap_switch_data->get_switch_value(cap_switch_data);
@@ -67,13 +73,13 @@ static int get_switch_state(void)
     }
     return switch_state;
 }
-
+// 스위치 콜백 함수 정의
 static void cap_switch_cmd_cb(struct caps_switch_data *caps_data)
 {
     int switch_state = get_switch_state();
     change_switch_state(switch_state);
 }
-
+// 능력 초기화 함수 정의
 static void capability_init()
 {
     cap_switch_data = caps_switch_initialize(ctx, "main", NULL, NULL);
@@ -111,6 +117,7 @@ static void iot_status_cb(iot_status_t status,
 }
 
 #if defined(SET_PIN_NUMBER_CONFRIM)
+// pin_num_memcpy 함수 정의
 void* pin_num_memcpy(void *dest, const void *src, unsigned int count)
 {
     unsigned int i;
@@ -119,7 +126,7 @@ void* pin_num_memcpy(void *dest, const void *src, unsigned int count)
     return dest;
 }
 #endif
-
+// 연결 시작 함수 정의
 static void connection_start(void)
 {
     iot_pin_t *pin_num = NULL;
@@ -144,13 +151,13 @@ static void connection_start(void)
         free(pin_num);
     }
 }
-
+// 연결 시작 태스크 함수 정의
 static void connection_start_task(void *arg)
 {
     connection_start();
     vTaskDelete(NULL);
 }
-
+// IoT 알림 콜백 함수 정의
 static void iot_noti_cb(iot_noti_data_t *noti_data, void *noti_usr_data)
 {
     printf("Notification message received\n");
@@ -162,7 +169,7 @@ static void iot_noti_cb(iot_noti_data_t *noti_data, void *noti_usr_data)
                noti_data->raw.rate_limit.remainingTime, noti_data->raw.rate_limit.sequenceNumber);
     }
 }
-
+// 버튼 이벤트 함수 정의
 void button_event(IOT_CAP_HANDLE *handle, int type, int count)
 {
     if (type == BUTTON_SHORT_PRESS) {
@@ -201,7 +208,7 @@ void button_event(IOT_CAP_HANDLE *handle, int type, int count)
         xTaskCreate(connection_start_task, "connection_task", 2048, NULL, 10, NULL);
     }
 }
-
+// 주요 앱 태스크 함수 정의
 static void app_main_task(void *arg)
 {
     IOT_CAP_HANDLE *handle = (IOT_CAP_HANDLE *)arg;
@@ -220,7 +227,7 @@ static void app_main_task(void *arg)
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
-
+// 메인 함수 정의
 void app_main(void)
 {
     /**
