@@ -56,8 +56,8 @@ static int noti_led_mode = LED_ANIMATION_MODE_IDLE;
 // Switch 데이터와 관련된 변수 선언
 static caps_switch_data_t *cap_switch_data;
 
-// 스위치 상태를 가져오는 함수 정의
-static int get_switch_state(void)
+
+static int get_switch_state(void)        // 스위치 상태를 가져오는 함수 정의
 {
     const char* switch_value = cap_switch_data->get_switch_value(cap_switch_data);
     int switch_state = SWITCH_OFF;
